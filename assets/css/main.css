@@ -2170,6 +2170,22 @@ input, select, textarea {
 				border-bottom-color: rgba(34, 30, 31, 0.98);
 			}
 
+			#showcase{
+				background-image:url('../../images/showcase.jpg');
+				background-position:center right ;
+				min-height:400px;
+
+				margin-bottom:10px;
+				text-align: center;
+			}
+
+			#showcase h1{
+				color:#fff;
+				font-size:50px;
+				line-height: 1.6em;
+				padding-top:150px;
+			}
+
 /* Banner */
 
 	#banner {
@@ -2906,6 +2922,8 @@ input, select, textarea {
 				#intro h2 {
 					font-size: 1.25em;
 				}
+
+
 
 		/* Banner */
 
