@@ -3,7 +3,7 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Rosalind</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>Chatbot</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 <head>
 	<link rel="stylesheet" type="text/css" href="assets/css/style2.css">
@@ -51,10 +51,6 @@
 	 <a href="about.html">About</a>
  </div>
 </body>
-
-<!-- <section id="showcaseRosalind">
-
-</section> -->
 
 
 <style type="text/css">
@@ -14308,1122 +14304,439 @@ a.anchor-link {
 
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Rosalind-Problems">Rosalind Problems<a class="anchor-link" href="#Rosalind-Problems">&#182;</a></h1>
+<h1 id="Chatbot">Chatbot<a class="anchor-link" href="#Chatbot">&#182;</a></h1>
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>In this notebook i look through several bioinformatics problems from the Rosalind platform, using <a href="https://biopython.org/">Biopython</a> and <a href="https://networkx.org/">NetworkX</a> packages.</p>
-<p><a href="http://rosalind.info/problems/locations/">Rosalind</a> is a platform for learning bioinformatics and programming through problem solving.</p>
-<p>The problems can be found <a href="http://rosalind.info/problems/list-view/">here</a>.</p>
-<p>The GitHub repository for this project can be found <a href="https://github.com/nicksento/Rosalind">here</a>.</p>
+<p>In this project we build a simple chatbot using PyTorch and some basic Natural Language Processing (NLP) techniques.</p>
+<p>The GitHub repository of this project can be found <a href="https://github.com/nicksento/Chatbot">here</a>.</p>
 
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Import-Libraries">Import Libraries<a class="anchor-link" href="#Import-Libraries">&#182;</a></h1>
+<h1 id="Contents">Contents<a class="anchor-link" href="#Contents">&#182;</a></h1><p><a href="#natural-language-processing-functions">1.Natural Language Processing Functions</a><br>
+<a href="#feedforward-neural-network">2.Feedforward Neural Network</a><br>
+<a href="#train-the-model">3.Train the Model</a><br>
+<a href="#chatbot-framework">4.Chatbot Framework</a><br>
+<a href="#gui-with-tkinter">5.Graphical User Interface with Tkinter</a><br>
+<a href="#chatbot-gui">6.Chatbot GUI</a></p>
+
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">Bio.Seq</span> <span class="kn">import</span> <span class="n">Seq</span>
-<span class="kn">from</span> <span class="nn">Bio</span> <span class="kn">import</span> <span class="n">SeqIO</span>
-<span class="kn">from</span> <span class="nn">Bio.SeqUtils</span> <span class="kn">import</span> <span class="n">GC</span>
-<span class="kn">from</span> <span class="nn">Bio</span> <span class="kn">import</span> <span class="n">motifs</span>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="Natural-Language-Processing-Functions-">Natural Language Processing Functions <a id="natural-language-processing-functions" /><a class="anchor-link" href="#Natural-Language-Processing-Functions-">&#182;</a></h1>
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>We will use two methods from the <strong>Natural Language Toolkit</strong>, <em>word_tokenize</em> and <em>stem</em>.</p>
+<p><strong>NLTK</strong> is a leading platform for building Python programs to work with human language data.</p>
+<p><strong>Tokenizers</strong> divide strings into lists of substrings. For example, tokenizers can be used to find the words and punctuation in a string:</p>
+<p><strong>Stemming</strong> in linguistic morphology and information retrieval, is the process of reducing inflected (or sometimes derived) words to their word stem, base or root form—generally a written word form.</p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">nltk</span>
+<span class="kn">from</span> <span class="nn">nltk.stem.porter</span> <span class="kn">import</span> <span class="n">PorterStemmer</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="k">def</span> <span class="nf">tokenize</span><span class="p">(</span><span class="n">sentence</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">nltk</span><span class="o">.</span><span class="n">word_tokenize</span><span class="p">(</span><span class="n">sentence</span><span class="p">)</span>
+
+<span class="n">stemmer</span> <span class="o">=</span> <span class="n">PorterStemmer</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">stem</span><span class="p">(</span><span class="n">word</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">stemmer</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+<span class="k">def</span> <span class="nf">bag_of_words</span><span class="p">(</span><span class="n">tokenized_sentence</span><span class="p">,</span> <span class="n">all_words</span><span class="p">):</span>
+    <span class="n">tokenized_sentence</span> <span class="o">=</span> <span class="p">[</span><span class="n">stem</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">tokenized_sentence</span><span class="p">]</span>
+    <span class="n">bag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_words</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_words</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">tokenized_sentence</span><span class="p">:</span>
+            <span class="n">bag</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">return</span> <span class="n">bag</span>
+</pre></div>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="Feedforward-Neural-Network-">Feedforward Neural Network <a id="feedforward-neural-network" /><a class="anchor-link" href="#Feedforward-Neural-Network-">&#182;</a></h1>
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>We are going to use a <strong>Feedforward Neural Network</strong> with two hidden layers.</p>
+<p>A <strong>Feedforward Neural Network</strong> is an artificial neural network wherein connections between the nodes do not form a cycle. It was the first and simplest type of artificial neural network devised. In this network, the information moves in only one direction—forward—from the input nodes, through the hidden nodes (if any) and to the output nodes. There are no cycles or loops in the network.</p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+
+<span class="k">class</span> <span class="nc">NeuralNet</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">NeuralNet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">l1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">input_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">l2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">l3</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">l1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">l3</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="c1"># no activation and no softmax</span>
+        <span class="k">return</span> <span class="n">out</span>
+</pre></div>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="Train-the-Model-">Train the Model <a id="train-the-model" /><a class="anchor-link" href="#Train-the-Model-">&#182;</a></h1>
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Next we are going to train our model using an intents json file that has a form like this:</p>
+<div class="highlight"><pre><span></span><span class="s2">&quot;intents&quot;</span><span class="err">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="nt">&quot;tag&quot;</span><span class="p">:</span> <span class="s2">&quot;greeting&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;patterns&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;Hi&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Hey&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;How are you&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Is anyone there?&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Hello&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Good day&quot;</span>
+      <span class="p">],</span>
+      <span class="nt">&quot;responses&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;Hey :-)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Hello, thanks for visiting&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Hi there, what can I do for you?&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Hi there, how can I help?&quot;</span>
+      <span class="p">]</span>
+    <span class="p">},</span>
+</pre></div>
+<p>Each conversational intent contains:</p>
+<ul>
+<li>a tag (a unique name)</li>
+<li>patterns (sentence patterns for our neural network text classifier)</li>
+<li>responses (one will be used as a response)</li>
+</ul>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">nlkt_utils</span> <span class="kn">import</span> <span class="n">tokenize</span><span class="p">,</span> <span class="n">stem</span><span class="p">,</span> <span class="n">bag_of_words</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataLoader</span>
+
+<span class="kn">from</span> <span class="nn">Model</span> <span class="kn">import</span> <span class="n">NeuralNet</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;intents.json&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">intents</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="n">all_words</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">tags</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">xy</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">intent</span> <span class="ow">in</span> <span class="n">intents</span><span class="p">[</span><span class="s1">&#39;intents&#39;</span><span class="p">]:</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">intent</span><span class="p">[</span><span class="s1">&#39;tag&#39;</span><span class="p">]</span>
+    <span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">intent</span> <span class="ow">in</span> <span class="n">intents</span><span class="p">[</span><span class="s1">&#39;intents&#39;</span><span class="p">]:</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">intent</span><span class="p">[</span><span class="s1">&#39;tag&#39;</span><span class="p">]</span>
+    <span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">intent</span><span class="p">[</span><span class="s1">&#39;patterns&#39;</span><span class="p">]:</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
+        <span class="n">all_words</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+        <span class="n">xy</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">w</span><span class="p">,</span> <span class="n">tag</span><span class="p">))</span>
+
+<span class="n">ignore_words</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="s1">&#39;!&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">]</span>
+
+<span class="n">all_words</span> <span class="o">=</span> <span class="p">[</span><span class="n">stem</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">all_words</span> <span class="k">if</span> <span class="n">w</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_words</span><span class="p">]</span>
+
+<span class="n">all_words</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">all_words</span><span class="p">))</span>
+
+<span class="n">tags</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">tags</span><span class="p">))</span>
+
+<span class="n">X_train</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">y_train</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="p">(</span><span class="n">pattern_sentence</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span> <span class="ow">in</span> <span class="n">xy</span><span class="p">:</span>
+    <span class="n">bag</span> <span class="o">=</span> <span class="n">bag_of_words</span><span class="p">(</span><span class="n">pattern_sentence</span><span class="p">,</span> <span class="n">all_words</span><span class="p">)</span>
+    <span class="n">X_train</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bag</span><span class="p">)</span>
+
+    <span class="n">label</span> <span class="o">=</span> <span class="n">tags</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+    <span class="n">y_train</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="c1"># CrossEntropyLoss</span>
+
+<span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span>
+<span class="n">y_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y_train</span><span class="p">)</span>
+
+<span class="n">X_train</span>
+
+<span class="k">class</span> <span class="nc">ChatDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_data</span> <span class="o">=</span> <span class="n">X_train</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_data</span> <span class="o">=</span> <span class="n">y_train</span>
+
+    <span class="c1">#dataset[idx]</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span>
+
+<span class="c1"># Hyperparameters</span>
+<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">hidden_size</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">output_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span>
+<span class="n">input_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_train</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">learning_rate</span> <span class="o">=</span> <span class="mf">0.001</span>
+<span class="n">num_epochs</span> <span class="o">=</span> <span class="mi">1000</span>
+
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">ChatDataset</span><span class="p">()</span>
+<span class="n">train_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+                          <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+                          <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                          <span class="n">num_workers</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">NeuralNet</span><span class="p">(</span><span class="n">input_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">,</span> <span class="n">output_size</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+<span class="c1"># loss and optimizer</span>
+<span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_epochs</span><span class="p">):</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span> <span class="ow">in</span> <span class="n">train_loader</span><span class="p">:</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">words</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="c1"># forward</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+        <span class="c1"># backward and optimizer step</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+        <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">epoch</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;epoch </span><span class="si">{</span><span class="n">epoch</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">num_epochs</span><span class="si">}</span><span class="s1">, loss=</span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;final loss, loss=</span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;model_state&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+    <span class="s2">&quot;input_size&quot;</span><span class="p">:</span> <span class="n">input_size</span><span class="p">,</span>
+    <span class="s2">&quot;output_size&quot;</span><span class="p">:</span> <span class="n">output_size</span><span class="p">,</span>
+    <span class="s2">&quot;hidden_size&quot;</span><span class="p">:</span> <span class="n">hidden_size</span><span class="p">,</span>
+    <span class="s2">&quot;all_words&quot;</span><span class="p">:</span> <span class="n">all_words</span><span class="p">,</span>
+    <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="n">tags</span>
+<span class="p">}</span>
+
+<span class="n">FILE</span> <span class="o">=</span> <span class="s2">&quot;data.pth&quot;</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">FILE</span><span class="p">)</span>
 </pre></div>
 
-     </div>
-</div>
-</div>
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Counting-DNA-Nucleotides">Counting DNA Nucleotides<a class="anchor-link" href="#Counting-DNA-Nucleotides">&#182;</a></h1>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">Counting_DNA_Nucleotides</span><span class="p">(</span><span class="n">dna</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a DNA string s, prints the respective number </span>
-<span class="sd">    of times that the symbols &#39;A&#39;, &#39;C&#39;, &#39;G&#39;, and &#39;T&#39; occur in s</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">seq</span> <span class="o">=</span> <span class="n">Seq</span><span class="p">(</span><span class="n">dna</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Adenine  (A):</span><span class="si">{}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">Cytosine (C):</span><span class="si">{}</span><span class="s2">&quot;</span>
-      <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Guanine  (G):</span><span class="si">{}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">Thymine  (T):</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">seq</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">),</span>
-                                                 <span class="n">seq</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">),</span>
-                                                 <span class="n">seq</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;G&quot;</span><span class="p">),</span>
-                                                 <span class="n">seq</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)))</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">dna</span> <span class="o">=</span> <span class="s2">&quot;AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGC&quot;</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">Counting_DNA_Nucleotides</span><span class="p">(</span><span class="n">dna</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Adenine  (A):20
-Cytosine (C):12
-Guanine  (G):17
-Thymine  (T):21
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Transcribe-DNA-into-RNA">Transcribe DNA into RNA<a class="anchor-link" href="#Transcribe-DNA-into-RNA">&#182;</a></h1>
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>There is a built-in function in the Biopython package for transcribing</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">dna</span> <span class="o">=</span> <span class="n">Seq</span><span class="p">(</span><span class="s2">&quot;GATGGAACTTGACTACGTAAATT&quot;</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">rna</span> <span class="o">=</span> <span class="n">dna</span><span class="o">.</span><span class="n">transcribe</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">rna</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>GAUGGAACUUGACUACGUAAAUU
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Complementing-a-Strand-of-DNA">Complementing a Strand of DNA<a class="anchor-link" href="#Complementing-a-Strand-of-DNA">&#182;</a></h1>
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>There is a built-in function in the Biopython package that returns the reverse complement of a DNA string.</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">seq</span> <span class="o">=</span> <span class="n">Seq</span><span class="p">(</span><span class="s2">&quot;AAAACCCGGT&quot;</span><span class="p">)</span>
-<span class="n">rev_com</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">reverse_complement</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">rev_com</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>ACCGGGTTTT
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Computing-GC-Content">Computing GC Content<a class="anchor-link" href="#Computing-GC-Content">&#182;</a></h1>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">Computing_GC_Content</span><span class="p">(</span><span class="n">data_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given DNA strings in FASTA format, prints the ID of the string having </span>
-<span class="sd">    the highest GC-content, followed by the GC-content of that string.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">max</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">seq_record</span> <span class="ow">in</span> <span class="n">SeqIO</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s2">&quot;fasta&quot;</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">GC</span><span class="p">(</span><span class="n">seq_record</span><span class="o">.</span><span class="n">seq</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">max</span><span class="p">:</span>
-            <span class="nb">max</span> <span class="o">=</span> <span class="n">GC</span><span class="p">(</span><span class="n">seq_record</span><span class="o">.</span><span class="n">seq</span><span class="p">)</span>
-            <span class="nb">id</span> <span class="o">=</span> <span class="n">seq_record</span><span class="o">.</span><span class="n">id</span>
-    <span class="nb">print</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="nb">max</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[9]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">data_path</span> <span class="o">=</span> <span class="s1">&#39;data/Computing_GC_Content.fasta&#39;</span>
-<span class="n">Computing_GC_Content</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Rosalind_0808
-60.91954022988506
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Counting-Point-Mutations">Counting Point Mutations<a class="anchor-link" href="#Counting-Point-Mutations">&#182;</a></h1>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[10]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">Counting_Point_Mutations</span><span class="p">(</span><span class="n">seq1</span><span class="p">,</span> <span class="n">seq2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given two DNA strings seq1 and seq2 of equal length,</span>
-<span class="sd">    prints The Hamming distance dH(seq1,seq2)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">seq1</span><span class="p">)):</span>
-          <span class="k">if</span> <span class="p">(</span><span class="n">seq1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">seq2</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
-              <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[11]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">seq1</span> <span class="o">=</span> <span class="s2">&quot;GAGCCTACTAACGGGAT&quot;</span>
-<span class="n">seq2</span> <span class="o">=</span> <span class="s2">&quot;CATCGTAATGACGGCCT&quot;</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[12]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">Counting_Point_Mutations</span><span class="p">(</span><span class="n">seq1</span><span class="p">,</span> <span class="n">seq2</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>7
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Translating-RNA-into-Protein">Translating RNA into Protein<a class="anchor-link" href="#Translating-RNA-into-Protein">&#182;</a></h1>
+<h1 id="Chatbot-Framework-">Chatbot Framework <a id="chatbot-framework" /><a class="anchor-link" href="#Chatbot-Framework-">&#182;</a></h1>
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>There is a built-in function in the Biopython package that translates an mRNA string into Protein.</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">json</span>
 
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[13]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">mRNA</span> <span class="o">=</span> <span class="n">Seq</span><span class="p">(</span><span class="s2">&quot;AUGGCCAUGGCGCCCAGAACUGAGAUCAAUAGUACCCGUAUUAACGGGUGA&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">mRNA</span><span class="o">.</span><span class="n">translate</span><span class="p">())</span>
-</pre></div>
+<span class="kn">import</span> <span class="nn">torch</span>
 
-     </div>
-</div>
-</div>
-</div>
+<span class="kn">from</span> <span class="nn">model</span> <span class="kn">import</span> <span class="n">NeuralNet</span>
+<span class="kn">from</span> <span class="nn">nltk_utils</span> <span class="kn">import</span> <span class="n">bag_of_words</span><span class="p">,</span> <span class="n">tokenize</span>
 
-<div class="jp-Cell-outputWrapper">
+<span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
 
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;intents.json&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_data</span><span class="p">:</span>
+    <span class="n">intents</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">json_data</span><span class="p">)</span>
 
-<div class="jp-OutputArea jp-Cell-outputArea">
+<span class="n">FILE</span> <span class="o">=</span> <span class="s2">&quot;data.pth&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">FILE</span><span class="p">)</span>
 
-<div class="jp-OutputArea-child">
+<span class="n">input_size</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;input_size&quot;</span><span class="p">]</span>
+<span class="n">hidden_size</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;hidden_size&quot;</span><span class="p">]</span>
+<span class="n">output_size</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;output_size&quot;</span><span class="p">]</span>
+<span class="n">all_words</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;all_words&#39;</span><span class="p">]</span>
+<span class="n">tags</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]</span>
+<span class="n">model_state</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;model_state&quot;</span><span class="p">]</span>
 
+<span class="n">model</span> <span class="o">=</span> <span class="n">NeuralNet</span><span class="p">(</span><span class="n">input_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">,</span> <span class="n">output_size</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">model_state</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
 
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<span class="n">bot_name</span> <span class="o">=</span> <span class="s2">&quot;Sam&quot;</span>
 
+<span class="k">def</span> <span class="nf">get_response</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+    <span class="n">sentence</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">bag_of_words</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span> <span class="n">all_words</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>MAMAPRTEINSTRING*
-</pre>
-</div>
-</div>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">predicted</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-</div>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">tags</span><span class="p">[</span><span class="n">predicted</span><span class="o">.</span><span class="n">item</span><span class="p">()]</span>
 
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Finding-a-Motif-in-DNA">Finding a Motif in DNA<a class="anchor-link" href="#Finding-a-Motif-in-DNA">&#182;</a></h1>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[14]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">find_motif</span><span class="p">(</span><span class="n">seq1</span><span class="p">,</span> <span class="n">seq2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given two DNA strings seq1 and seq2,</span>
-<span class="sd">    prints all locations of seq2 as a substring of seq1.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">instances</span> <span class="o">=</span> <span class="p">[</span><span class="n">Seq</span><span class="p">(</span><span class="n">seq2</span><span class="p">)]</span>
-    <span class="n">m</span> <span class="o">=</span> <span class="n">motifs</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">instances</span><span class="p">)</span>
-    <span class="n">position</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">instances</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">seq1</span><span class="p">):</span>
-        <span class="n">position</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">position</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[15]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">seq1</span> <span class="o">=</span> <span class="s2">&quot;GATATATGCATATACTT&quot;</span>
-<span class="n">seq2</span> <span class="o">=</span> <span class="s2">&quot;ATAT&quot;</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[16]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">find_motif</span><span class="p">(</span><span class="n">seq1</span><span class="p">,</span> <span class="n">seq2</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>2 4 10
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Consensus-and-Profile">Consensus and Profile<a class="anchor-link" href="#Consensus-and-Profile">&#182;</a></h1>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[17]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">Consensus_and_Profile</span><span class="p">(</span><span class="n">data_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a collection of DNA strings of equal length in FASTA format,</span>
-<span class="sd">    prints a consensus string and profile matrix for the collection. </span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">instances</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">seq_record</span> <span class="ow">in</span> <span class="n">SeqIO</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s2">&quot;fasta&quot;</span><span class="p">):</span>
-        <span class="n">instances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">seq_record</span><span class="o">.</span><span class="n">seq</span><span class="p">)</span>
-    <span class="n">m</span> <span class="o">=</span> <span class="n">motifs</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">instances</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">consensus</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;A:&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">m</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">])</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;C:&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">m</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="s2">&quot;C&quot;</span><span class="p">])</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;G:&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">m</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="p">])</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;T:&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">m</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="s2">&quot;T&quot;</span><span class="p">])</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[18]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">data_path</span> <span class="o">=</span> <span class="s2">&quot;data/Consensus_and_Profile.fasta&quot;</span>
-<span class="n">Consensus_and_Profile</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>ATGCAACT
-A: 5 1 0 0 5 5 0 0
-C: 0 0 1 4 2 0 6 1
-G: 1 1 6 3 0 1 0 0
-T: 1 5 0 0 0 1 1 6
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Overlap-Graphs">Overlap Graphs<a class="anchor-link" href="#Overlap-Graphs">&#182;</a></h1>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[19]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">Overlap_Graphs</span><span class="p">(</span><span class="n">data_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a collection of DNA strings in FASTA format,</span>
-<span class="sd">    prints the adjacency list corresponding to O3 and </span>
-<span class="sd">    draws the corresponding graph.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">P</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1">#P.append(seq_record)</span>
-    <span class="nb">id</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">str_rec</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">seq_record</span> <span class="ow">in</span> <span class="n">SeqIO</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s2">&quot;fasta&quot;</span><span class="p">):</span>
-        <span class="n">P</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">seq_record</span><span class="o">.</span><span class="n">seq</span><span class="p">))</span>
-        <span class="nb">id</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">seq_record</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-        <span class="n">str_rec</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">seq_record</span><span class="o">.</span><span class="n">seq</span><span class="p">))</span>
-    <span class="n">edges</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">P</span><span class="p">)):</span>
-        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">P</span><span class="p">)):</span>
-            <span class="k">if</span> <span class="p">((</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span> <span class="o">==</span> <span class="n">P</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">i</span><span class="o">!=</span><span class="n">j</span><span class="p">)):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="nb">id</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb">id</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
-                <span class="n">edges</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">str_rec</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">str_rec</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
-    <span class="n">Draw_Graph</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[20]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">Draw_Graph</span><span class="p">(</span><span class="n">edges</span><span class="p">):</span>
-    <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
-    <span class="n">G</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
-    <span class="n">pos</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">spring_layout</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
-    <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-
-    <span class="n">A</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">nx_agraph</span><span class="o">.</span><span class="n">to_agraph</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
-    <span class="n">A</span><span class="o">.</span><span class="n">layout</span><span class="p">()</span>
-    <span class="n">A</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="s1">&#39;data/Overlap_Graphs.png&#39;</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[21]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">data_path</span> <span class="o">=</span> <span class="s2">&quot;data/Overlap_Graphs.fasta&quot;</span>
-<span class="n">Overlap_Graphs</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Rosalind_0498 Rosalind_2391
-Rosalind_0498 Rosalind_0442
-Rosalind_2391 Rosalind_2323
-</pre>
-</div>
-</div>
-
-<div class="jp-OutputArea-child">
-
-
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedImage jp-OutputArea-output ">
-<img src="data:image/png;base64,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
-"
->
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[22]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Image</span>
-<span class="n">Image</span><span class="p">(</span><span class="s2">&quot;data/Overlap_Graphs.png&quot;</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[22]:</div>
-
-
-
-
-<div class="jp-RenderedImage jp-OutputArea-output jp-OutputArea-executeResult">
-<img src="data:image/png;base64,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
-"
->
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Finding-a-Shared-Motif">Finding a Shared Motif<a class="anchor-link" href="#Finding-a-Shared-Motif">&#182;</a></h1>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[23]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">Finding_a_Shared_Motif</span><span class="p">(</span><span class="n">data_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given: A collection of DNA strings in FASTA format,</span>
-<span class="sd">    prints a longest common substring of the collection.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">s</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">seq_record</span> <span class="ow">in</span> <span class="n">SeqIO</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s2">&quot;fasta&quot;</span><span class="p">):</span>
-        <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">seq_record</span><span class="o">.</span><span class="n">seq</span><span class="p">)</span>
-
-    <span class="n">index</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">))</span>
-    <span class="n">motif</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    <span class="n">shortest</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shortest</span><span class="p">)):</span>
-        <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">present</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">while</span> <span class="n">present</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">shortest</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">each</span> <span class="ow">or</span> <span class="n">n</span><span class="o">&gt;</span><span class="mi">1000</span><span class="p">:</span>
-                    <span class="n">present</span> <span class="o">=</span> <span class="kc">False</span>
-                    <span class="k">break</span>
-            <span class="k">if</span> <span class="n">present</span><span class="p">:</span>
-                <span class="n">motif</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">shortest</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">],</span> <span class="n">motif</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">)</span>
-            <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">motif</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[24]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">data_path</span><span class="o">=</span><span class="s1">&#39;data/Finding_a_Shared_Motif.fasta&#39;</span>
-<span class="n">Finding_a_Shared_Motif</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>CA
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Inferring-mRNA-from-Protein">Inferring mRNA from Protein<a class="anchor-link" href="#Inferring-mRNA-from-Protein">&#182;</a></h1>
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="RNA-codon-table">RNA codon table<a class="anchor-link" href="#RNA-codon-table">&#182;</a></h2><p>A table indicating the translation of individual RNA codons into amino acids for the purpose of protein creation.</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[25]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">Bio.Data</span> <span class="kn">import</span> <span class="n">CodonTable</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">CodonTable</span><span class="o">.</span><span class="n">generic_by_id</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Table 1 Standard, SGC0
-
-  |  U      |  C      |  A      |  G      |
---+---------+---------+---------+---------+--
-U | UUU F   | UCU S   | UAU Y   | UGU C   | U
-U | UUC F   | UCC S   | UAC Y   | UGC C   | C
-U | UUA L   | UCA S   | UAA Stop| UGA Stop| A
-U | UUG L(s)| UCG S   | UAG Stop| UGG W   | G
---+---------+---------+---------+---------+--
-C | CUU L   | CCU P   | CAU H   | CGU R   | U
-C | CUC L   | CCC P   | CAC H   | CGC R   | C
-C | CUA L   | CCA P   | CAA Q   | CGA R   | A
-C | CUG L(s)| CCG P   | CAG Q   | CGG R   | G
---+---------+---------+---------+---------+--
-A | AUU I   | ACU T   | AAU N   | AGU S   | U
-A | AUC I   | ACC T   | AAC N   | AGC S   | C
-A | AUA I   | ACA T   | AAA K   | AGA R   | A
-A | AUG M(s)| ACG T   | AAG K   | AGG R   | G
---+---------+---------+---------+---------+--
-G | GUU V   | GCU A   | GAU D   | GGU G   | U
-G | GUC V   | GCC A   | GAC D   | GGC G   | C
-G | GUA V   | GCA A   | GAA E   | GGA G   | A
-G | GUG V   | GCG A   | GAG E   | GGG G   | G
---+---------+---------+---------+---------+--
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[26]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># This dictionary defines how many possible RNA equivalent each aminoacid has</span>
-<span class="n">protein_to_rna_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;F&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;L&#39;</span><span class="p">:</span><span class="mi">6</span><span class="p">,</span><span class="s1">&#39;S&#39;</span><span class="p">:</span><span class="mi">6</span><span class="p">,</span>
-                       <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;C&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;W&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span>
-                       <span class="s1">&#39;P&#39;</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;H&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;Q&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span>
-                       <span class="s1">&#39;R&#39;</span><span class="p">:</span><span class="mi">6</span><span class="p">,</span><span class="s1">&#39;I&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span><span class="s1">&#39;M&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span>
-                       <span class="s1">&#39;T&#39;</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;N&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;K&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span>
-                       <span class="s1">&#39;V&#39;</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;A&#39;</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;D&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span>
-                       <span class="s1">&#39;E&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;G&#39;</span><span class="p">:</span><span class="mi">4</span><span class="p">}</span>
-<span class="n">stop_codons</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;UAA&#39;</span><span class="p">,</span><span class="s1">&#39;UGA&#39;</span><span class="p">,</span><span class="s1">&#39;UAG&#39;</span><span class="p">]</span>
-<span class="n">num_stop_codons</span> <span class="o">=</span> <span class="mi">3</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[27]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">Inferring_mRNA_from_Protein</span><span class="p">(</span><span class="n">aa_seq</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a protein string of amino acids,</span>
-<span class="sd">    prints the total number of different RNA strings </span>
-<span class="sd">    from which the protein could have been translated, modulo 1,000,000.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">num_dif</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">aa_seq</span><span class="p">:</span>
-        <span class="n">num_dif</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_dif</span> <span class="o">*</span> <span class="n">protein_to_rna_dict</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">%</span> <span class="mi">1000000</span>
-    <span class="n">num_dif</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_dif</span> <span class="o">*</span> <span class="n">num_stop_codons</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">num_dif</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[28]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">aa_seq</span> <span class="o">=</span> <span class="s1">&#39;MA&#39;</span>
-<span class="n">Inferring_mRNA_from_Protein</span><span class="p">(</span><span class="n">aa_seq</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>12
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Rabbits-and-Recurrence-Relations">Rabbits and Recurrence Relations<a class="anchor-link" href="#Rabbits-and-Recurrence-Relations">&#182;</a></h1>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[29]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">Rabbits</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">k</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Returns the total number of rabbit pairs that will be present after n months,</span>
-<span class="sd">    if we begin with 1 pair and in each generation,</span>
-<span class="sd">    every pair of reproduction-age rabbits produces a litter of k rabbit pairs </span>
-<span class="sd">    </span>
-<span class="sd">    N: months</span>
-<span class="sd">    k: rabbit pairs</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">N</span><span class="o">==</span><span class="mi">1</span><span class="p">):</span>
-        <span class="k">return</span> <span class="mi">1</span>
-    <span class="k">elif</span> <span class="p">(</span><span class="n">N</span><span class="o">==</span><span class="mi">2</span><span class="p">):</span>
-        <span class="k">return</span> <span class="mi">1</span>
+    <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">prob</span> <span class="o">=</span> <span class="n">probs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">predicted</span><span class="o">.</span><span class="n">item</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.75</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">intent</span> <span class="ow">in</span> <span class="n">intents</span><span class="p">[</span><span class="s1">&#39;intents&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="n">intent</span><span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">intent</span><span class="p">[</span><span class="s1">&#39;responses&#39;</span><span class="p">])</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">Rabbits</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="o">+</span><span class="n">k</span><span class="o">*</span><span class="n">Rabbits</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="n">k</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s2">&quot;I do not understand...&quot;</span>
 </pre></div>
 
-     </div>
 </div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[30]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">Rabbits</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[30]:</div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>19</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Mendel's-First-Law">Mendel's First Law<a class="anchor-link" href="#Mendel's-First-Law">&#182;</a></h1>
+<h1 id="Graphical-User-Interface-with-Tkinter-">Graphical User Interface with Tkinter <a id="gui-with-tkinter" /><a class="anchor-link" href="#Graphical-User-Interface-with-Tkinter-">&#182;</a></h1>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[31]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">mendel</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given three positive integers k, m, and n, representing a population </span>
-<span class="sd">    containing k+m+n organisms: k individuals are homozygous dominant for a factor,</span>
-<span class="sd">    m are heterozygous, and n are homozygous recessive,</span>
-<span class="sd">    returns the probability that two randomly selected mating organisms </span>
-<span class="sd">    will produce an individual possessing a dominant allele </span>
-<span class="sd">    (and thus displaying the dominant phenotype) </span>
-<span class="sd">    assuming that any two organisms can mate.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">population</span> <span class="o">=</span> <span class="n">k</span> <span class="o">+</span> <span class="n">m</span> <span class="o">+</span> <span class="n">n</span>
-    <span class="k">return</span>    <span class="p">(</span><span class="n">k</span><span class="o">/</span><span class="n">population</span>
-              <span class="o">+</span> <span class="p">(</span><span class="n">m</span><span class="o">/</span><span class="n">population</span> <span class="o">*</span> <span class="n">k</span><span class="o">/</span><span class="p">(</span><span class="n">population</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
-              <span class="o">+</span> <span class="p">(</span><span class="n">m</span><span class="o">/</span><span class="n">population</span> <span class="o">*</span> <span class="p">(</span><span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">population</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">*</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span>
-              <span class="o">+</span> <span class="p">(</span><span class="n">m</span><span class="o">/</span><span class="n">population</span> <span class="o">*</span> <span class="n">n</span><span class="o">/</span><span class="p">(</span><span class="n">population</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">*</span><span class="mi">2</span><span class="o">/</span><span class="mi">4</span>
-              <span class="o">+</span> <span class="p">(</span><span class="n">n</span><span class="o">/</span><span class="n">population</span> <span class="o">*</span> <span class="n">k</span><span class="o">/</span><span class="p">(</span><span class="n">population</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
-              <span class="o">+</span> <span class="p">(</span><span class="n">n</span><span class="o">/</span><span class="n">population</span> <span class="o">*</span> <span class="n">m</span><span class="o">/</span><span class="p">(</span><span class="n">population</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">*</span><span class="mi">2</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>We are going to create a Graphical User Interface using Tkinter.</p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tkinter</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">chat_gui</span> <span class="kn">import</span> <span class="n">get_response</span><span class="p">,</span> <span class="n">bot_name</span>
+
+<span class="n">BG_GRAY</span> <span class="o">=</span> <span class="s2">&quot;#ABB2B9&quot;</span>
+<span class="n">BG_COLOR</span> <span class="o">=</span> <span class="s2">&quot;#17202A&quot;</span>
+<span class="n">TEXT_COLOR</span> <span class="o">=</span> <span class="s2">&quot;#EAECEE&quot;</span>
+
+<span class="n">FONT</span> <span class="o">=</span> <span class="s2">&quot;Helvetica 14&quot;</span>
+<span class="n">FONT_BOLD</span> <span class="o">=</span> <span class="s2">&quot;Helvetica 13 bold&quot;</span>
+
+<span class="k">class</span> <span class="nc">ChatApplication</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">Tk</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_main_window</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_setup_main_window</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Chat&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">resizable</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">470</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">550</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="n">BG_COLOR</span><span class="p">)</span>
+
+        <span class="c1"># head_label </span>
+        <span class="n">head_label</span> <span class="o">=</span> <span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="n">BG_COLOR</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="n">TEXT_COLOR</span><span class="p">,</span>
+                          <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Welcome&quot;</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">FONT_BOLD</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">head_label</span><span class="o">.</span><span class="n">place</span><span class="p">(</span><span class="n">relwidth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># tiny divider</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">450</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="n">BG_GRAY</span><span class="p">)</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">place</span><span class="p">(</span><span class="n">relwidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">rely</span><span class="o">=</span><span class="mf">0.07</span><span class="p">,</span> <span class="n">relheight</span><span class="o">=</span><span class="mf">0.012</span><span class="p">)</span>
+
+        <span class="c1"># text widget </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_widget</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="n">BG_COLOR</span><span class="p">,</span>
+                               <span class="n">fg</span><span class="o">=</span><span class="n">TEXT_COLOR</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">FONT</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_widget</span><span class="o">.</span><span class="n">place</span><span class="p">(</span><span class="n">relheight</span><span class="o">=</span><span class="mf">0.745</span><span class="p">,</span> <span class="n">relwidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">rely</span><span class="o">=</span><span class="mf">0.08</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_widget</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">cursor</span><span class="o">=</span><span class="s2">&quot;arrow&quot;</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">DISABLED</span><span class="p">)</span>
+
+        <span class="c1"># scroll bar</span>
+        <span class="n">scrollbar</span> <span class="o">=</span> <span class="n">Scrollbar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text_widget</span><span class="p">)</span>
+        <span class="n">scrollbar</span><span class="o">.</span><span class="n">place</span><span class="p">(</span><span class="n">relheight</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">relx</span><span class="o">=</span><span class="mf">0.974</span><span class="p">)</span>
+        <span class="n">scrollbar</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">text_widget</span><span class="o">.</span><span class="n">yview</span><span class="p">)</span>
+
+        <span class="c1"># bottom label</span>
+        <span class="n">bottom_label</span> <span class="o">=</span> <span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="n">BG_GRAY</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">80</span><span class="p">)</span>
+        <span class="n">bottom_label</span><span class="o">.</span><span class="n">place</span><span class="p">(</span><span class="n">relwidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">rely</span><span class="o">=</span><span class="mf">0.825</span><span class="p">)</span>
+
+        <span class="c1"># message entry box</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg_entry</span> <span class="o">=</span> <span class="n">Entry</span><span class="p">(</span><span class="n">bottom_label</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;#2C3E50&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="n">TEXT_COLOR</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">FONT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg_entry</span><span class="o">.</span><span class="n">place</span><span class="p">(</span><span class="n">relwidth</span><span class="o">=</span><span class="mf">0.74</span><span class="p">,</span> <span class="n">relheight</span><span class="o">=</span><span class="mf">0.06</span><span class="p">,</span> <span class="n">rely</span><span class="o">=</span><span class="mf">0.008</span><span class="p">,</span> <span class="n">relx</span><span class="o">=</span><span class="mf">0.011</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg_entry</span><span class="o">.</span><span class="n">focus</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg_entry</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;Return&gt;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_enter_pressed</span><span class="p">)</span>
+
+        <span class="c1"># send button</span>
+        <span class="n">send_button</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="n">bottom_label</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Send&quot;</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">FONT_BOLD</span><span class="p">,</span>
+                            <span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="n">BG_GRAY</span><span class="p">,</span>
+                            <span class="n">command</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_enter_pressed</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
+        <span class="n">send_button</span><span class="o">.</span><span class="n">place</span><span class="p">(</span><span class="n">relx</span><span class="o">=</span><span class="mf">0.77</span><span class="p">,</span> <span class="n">rely</span><span class="o">=</span><span class="mf">0.008</span><span class="p">,</span> <span class="n">relheight</span><span class="o">=</span><span class="mf">0.06</span><span class="p">,</span> <span class="n">relwidth</span><span class="o">=</span><span class="mf">0.22</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_on_enter_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg_entry</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insert_message</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s2">&quot;You&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_insert_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">sender</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">msg</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg_entry</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">msg1</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">sender</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_widget</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">NORMAL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_widget</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">END</span><span class="p">,</span> <span class="n">msg1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_widget</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">cursor</span><span class="o">=</span><span class="s2">&quot;arrow&quot;</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">DISABLED</span><span class="p">)</span>
+
+        <span class="n">msg2</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bot_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">get_response</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_widget</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">NORMAL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_widget</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">END</span><span class="p">,</span> <span class="n">msg2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_widget</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">cursor</span><span class="o">=</span><span class="s2">&quot;arrow&quot;</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">DISABLED</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_widget</span><span class="o">.</span><span class="n">see</span><span class="p">(</span><span class="n">END</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">ChatApplication</span><span class="p">()</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 
-     </div>
 </div>
 </div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[32]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">k</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="n">m</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="n">n</span> <span class="o">=</span> <span class="mi">2</span>
-</pre></div>
-
-     </div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="Chatbot-GUI-">Chatbot GUI <a id="chatbot-gui" /><a class="anchor-link" href="#Chatbot-GUI-">&#182;</a></h1>
 </div>
 </div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[33]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">mendel</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[33]:</div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>0.7833333333333333</pre>
-</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Below we can see what the graphical user interface looks like after asking our chatbot (Sam) some basic questions.</p>
 
 </div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p><img src="images/chat.png" width="350"></p>
 
 </div>
-
-</div>
-
 </div>
 </body>
 
